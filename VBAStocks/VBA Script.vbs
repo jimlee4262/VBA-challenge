@@ -1,0 +1,171 @@
+Sub Coding()
+
+
+Dim ticker As String
+Dim yearly_change As Variant
+Dim year_open As Variant
+Dim year_close As Variant
+Dim percent_change As Variant
+Dim volume As Double
+Dim Table_Summary As Long
+Dim i As Long
+Dim J As Integer
+Dim ws_num As Integer
+Dim max_volume As Double
+Dim max_volume_name As String
+Dim max_percent_change As Double
+Dim min_percent_change As Double
+Dim max_percent_name As String
+Dim min_percent_name As String
+Dim starting_ws As Worksheet
+
+
+lrow = Cells(Rows.Count, 1).End(xlUp).Row
+ws_num = ThisWorkbook.Worksheets.Count
+
+'Loops through each active sheet
+Set starting_ws = ActiveSheet
+For J = 1 To ws_num
+
+ThisWorkbook.Worksheets(J).Activate
+
+'defining variables as 0 and blanks
+max_volume = 0
+max_percent_change = 0
+min_percent_change = 0
+year_open = 0
+year_close = 0
+percent_change = 0
+max_percent_name =  
+min_percent_name =  
+max_volume_name =  
+volume = 0
+
+'Labeling each specific column
+Range(I1).Value = Ticker
+Range(J1).Value = Yearly Change
+Range(K1).Value = Percent Change
+Range(L1).Value = Total Volume
+
+'Start row 2 for table summary
+Table_Summary = 2
+
+'Start with the first opening date value to kickoff the code
+year_open = Cells(2, 3).Value
+
+
+'kicks off going through each row of data from the second row to the last row
+    For i = 2 To lrow
+    
+        'If statement to identify the first cell that shows a difference between the ticker symbol
+        If Cells(i + 1, 1).Value  Cells(i, 1).Value Then
+        
+        'Storing the ticker symbol
+        ticker = Cells(i, 1).Value
+        
+        'Adds total volume for the ticker
+        volume = volume + Cells(i, 7).Value
+        
+        'Stores the price of the last date
+        year_close = Cells(i, 6).Value
+        
+        'Calculate the yearly change where closing price of the last date minus opening price of beginning of the year
+        yearly_change = year_close - year_open
+        
+            'An exception if opening price is 0 because when calculating percent change price, it comes out as undefined
+            If year_open  0 Then
+            'calculates percent change
+            percent_change = yearly_change  year_open
+            Else
+            'makes the undefined 0 as it's impossible to calculate
+            percent_change = 0
+            End If
+        
+        
+        'stores the value in the table summary for ticker and yearly change
+        Range(I & Table_Summary).Value = ticker
+        Range(J & Table_Summary).Value = yearly_change
+        
+            'color coding
+            If Range(J & Table_Summary).Value  0 Then
+            Range(J & Table_Summary).Interior.ColorIndex = 4
+            ElseIf Range(J & Table_Summary).Value = 0 Then
+            Range(J & Table_Summary).Interior.ColorIndex = 3
+            End If
+        
+        'stores and format percent change and stores volume
+        Range(K & Table_Summary).Value = percent_change
+        Range(K & Table_Summary).NumberFormat = 0.00%
+        Range(L & Table_Summary).Value = volume
+        
+        'Goes to next row within table summary
+        Table_Summary = Table_Summary + 1
+                    
+            'stores the maximum volume number and ticker name based on the data set
+            If (volume  max_volume) Then
+            max_volume = volume
+            max_volume_name = ticker
+            End If
+            
+            
+            'Resets the hard count to 0
+            If Range(I & Table_Summary).Value  Range(I & Table_Summary - 1).Value Then
+            volume = 0
+            End If
+    
+        'Grabs the open price for the next available ticker
+        year_open = Cells(i + 1, 3).Value
+    
+        
+        Else
+        
+        'Aggregate volume within the same ticker
+        volume = volume + Cells(i, 7).Value
+        
+    End If
+    
+    
+        
+        
+        'get max or min of percent change
+        
+        If (percent_change  max_percent_change) Then
+        max_percent_change = percent_change
+        max_percent_name = ticker
+        
+        ElseIf percent_change  min_percent_change Then
+        min_percent_change = percent_change
+        min_percent_name = ticker
+        End If
+        
+    
+    'Goes to the next row within the data set
+    Next i
+    
+        'Labels the cell header
+        Range(O2).Value = Greatest % increase
+        Range(O3).Value = Greatest % decrease
+        Range(O4).Value = Greatest total volume
+        
+        'Stores the cell value
+        Range(P2).Value = max_percent_name
+        Range(P3).Value = min_percent_name
+        Range(P4).Value = max_volume_name
+        Range(Q2).Value = max_percent_change
+        Range(Q3).Value = min_percent_change
+        Range(Q4).Value = max_volume
+        
+        'Format the cell
+        Range(Q2).NumberFormat = 0.00%
+        Range(Q3).NumberFormat = 0.00%
+    
+    
+    'Goes to next worksheet
+    Next J
+    
+    'Goes to first sheet
+    starting_ws.Activate
+
+
+
+End Sub
